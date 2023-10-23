@@ -174,7 +174,7 @@ print(2*log_reduced(17, 15)) #2.833204497276931
 
 ```
 #4
-Here we will look at Mercators log formula and two methods to compute Gregory's.
+Here we will look at Mercators log formula and two methods to compute Gregory's. The reasoning behind the code is the same as in the two versions of Question 3.
 First let's start with Mercator's:
 ```
 log3_mer = 0
@@ -262,10 +262,10 @@ As we can see the way I listed these methods are in increasing order of speed, a
 ##1
 First is Heron's method:
 ```
-import math
 def myheron(a, n):
     x = a
     for i in range(1, n):
+        #Simply creating the sequence using the formula given in class
         x_nplus1 = (x + a / x) / 2
         x = x_nplus1
     return x
@@ -305,6 +305,7 @@ def mygoldschmidts(a, n):
     b = a
     y = a
     for i in range(1, n):
+        #Clearly defined k, b, and y values and sequences as seen in class
         k = (b-3)/2
         b_nplus1 = b/4 * ((3-b) ** 2)
         b = b_nplus1
@@ -334,6 +335,7 @@ Thus this converges linearly.
 ```
 def myphi_linear(x,n):
     for i in range(n):
+        #Finding where x0 hits the curve, then creating that to be the next x point (as we look for where x = y)
         y0 = math.asin(math.e ** -x)
         x = y0
     return x
@@ -345,6 +347,7 @@ Now we are going to try a fixed point method using Newton-Raphson: phi(x) = x - 
 ```
 def myphi_quadratic(x,n):
     for i in range(n):
+        #Similar reasoning to the previous method
         y0 = x - (math.sin(x) - (math.e ** -x)) / (math.cos(x) + (math.e ** -x))
         x = y0
     return x

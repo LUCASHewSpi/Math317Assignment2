@@ -307,7 +307,7 @@ def mygoldschmidts(a, n):
     for i in range(1, n):
         #Clearly defined k, b, and y values and sequences as seen in class
         k = (b-3)/2
-        b_nplus1 = b/4 * ((3-b) ** 2)
+        b_nplus1 = b/4 * ((3-b) * (3-b))
         b = b_nplus1
         y *= k
     return y

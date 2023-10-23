@@ -1,6 +1,6 @@
 # Math317Assignment2
 #1
-First we just used the power series function from Assignment 1. Then we implemented matplotlib and generated points for each iteration, x being the number of iterations, y being the log of the difference in error. 
+First we just used the power series function from Assignment 1. Then we implemented matplotlib and generated points for each iteration, x being the number of iterations, y being the log of the difference in error. I am not sure how to insert images into GitHub, but the slope of the plotted logarithm is negative and shows a negative correlation between the error term and the amount of iterations.
 ```
 import matplotlib.pyplot as plt
 import math
@@ -17,9 +17,10 @@ def mysin(x, n):
             term *= -(x * x) / ((i + 1) * (i + 2))
         return sin
     
-y_list = []
-x_list = []
+
 def mysinplot(x,n):
+    y_list = []
+    x_list = [] 
     for i in range (1, n+1, 2):
         #At some big n, error becomes too small and ln(0) cannot be computed, so Value Error added to stop that.
         try:
@@ -34,15 +35,24 @@ def mysinplot(x,n):
     plt.ylabel('Y-axis')
     plt.title("Error per iterations")
     plt.show()
+
+print(mysin(1.2, 20)) #0.9320390859672263
+
+print(mysin(5, 20))   #-0.9589331651965991
+
+print(mysin(20, 20))  #-22100480.976672374 #Clearly incorrect
+print(mysin(-30, 20)) #68044275598.92524
+
+
  ```
 ##2
-#We'll simply add two methods of argument reduction. One that reduces arguments to pi/2 using the periodicity of sin: sin(x + 2pi) = sin(x). 
+We'll simply add two methods of argument reduction. One that reduces arguments to pi/2 using the periodicity of sin: 
+sin(x + 2pi) = sin(x). 
 
 ```
-x = x % 2*math.pi
+x = x % (2*math.pi)
 ```
 And one where we use it's symmetry: sin(-x) = -sinx
-wow
 ```
 if x < 0:
   x = -x
@@ -50,18 +60,74 @@ if x < 0:
 if x <0 : 
   return -sin
 ```
-##3
-Similarly, we will use the mylog function from Assignment 1 and combine it with an identical plotting function.
+In order to save your time (and amount of scrolling), the combination of the two best helps with being able to estimate any range of inputs, versus strictly positive or strictly small ones.
+Which gives us a complete function of:
+```
+def mysin(x, n):
+        x = x % (2*math.pi)
+        if x < 0:
+            x = -x
+        sin = 0
+        term = x
+
+        #Taking a -x^2 step while increasing factorial in denominator 
+        for i in range (1, n+1, 2):
+            #Simply the the series formula (multiplying each step by -x^2 and moving
+            #the factorial in the denominator along 2 steps
+            sin += term 
+            term *= -(x * x) / ((i + 1) * (i + 2))
+        if x < 0:    
+            return -sin
+        else:
+            return sin 
+    
+
+def mysinplot(x,n):
+    y_list = []
+    x_list = []
+    for i in range (1, n+1, 2):
+                #Simply the the series formula (multiplying each step by -x^2 and moving
+                #the factorial in the denominator along 2 steps
+        try:
+            y_list += [(math.log(abs(math.sin((math.pi/2))-mysin((math.pi/2), i))))]
+            
+            x_list += [i]
+        except ValueError:
+                break
+    plt.plot(x_list,y_list)
+    plt.xlabel('X-axis')
+    plt.ylabel('Y-axis')
+    plt.title("A simple line graph")
+    plt.show()
+
+print(mysin(1.2, 20)) #0.9320390859672263
+
+print(mysin(5, 20)) #-0.9589331651965991
+
+print(mysin(20, 20)) #0.9129452507276279
+print(mysin(-30, 20)) #0.9880316240928616
+
 
 ```
-def mylog(x,n):
-  z = x-1
-  for i in range(n):
-    z = z/(1+math.sqrt(1+z))
-  l = z
-  for i in range(n):
-    l = l*2
-  return l
+##3
+Similarly, we will use the Meractor method and combine it with an identical plotting function. Similarly to #1, the slope shows a negative correlation between number of iterations and the error term. Of course abs(x) < 1 here. It is also VERY slow.
+
+```
+def log_mer_gen(x, n):
+    x= x-1
+    log_mer = 0
+    term = -1
+    for i in range(1,n):
+        #Multiplying each successive term by x/i, and -1 because it is alternating
+        term *= -1/i * x
+        log_mer += term
+
+        #Making sure to not carry fraction coefficient into the next term
+        term *= i
+    return(log_mer)
+
+print(log_mer_gen(2, 5000)) #0.6932471905599505
+#After 5000 iterations it still hardly has the first few digits correct
 
 def mylogplot(x,n):
     y_list = []
@@ -81,7 +147,33 @@ def mylogplot(x,n):
     plt.title("A simple line graph")
     plt.show()
 ```
-##4
+For argument reduction, we will look at the reduction via (x+1)/(x-1) = 1 + x/(1+sqrt(x)) for the Mercator method.
+This allows x to be greater than 1! 
+```
+def log_reduced(x, n):
+    log3_mfast = 0
+    term = 1
+    for i in range(1, 20, 2):
+        #This expression simply lines up the algebra such that any x > 0
+        # can be calculated in the argument reduced method
+        term *= 2/i * ( (x-1) / ( (x+1) + 2 * myheron(x, n) ) )
+
+        #since the only term not multipled by and "x^2" step is the first, this if/else
+        #helps us get around it
+        if i > 1:
+            term *= ( (x-1) / ( (x+1) + 2 * myheron(x, n) ) )
+        log3_mfast += term
+        term *= i/2
+    return log3_mfast
+
+#Multiplying the result by 2 as Gregory Series gives us 0.5log
+print(2*log_reduced(10, 15)) #2.302584823696781
+print(2*log_reduced(5, 15)) #1.609437912067221
+print(2*log_reduced(20, 15)) #2.9957108383773385
+print(2*log_reduced(17, 15)) #2.833204497276931
+
+```
+#4
 Here we will look at Mercators log formula and two methods to compute Gregory's.
 First let's start with Mercator's:
 ```
@@ -135,7 +227,7 @@ Here are the first 11 iterations:
 1.0986122297852055
 1.0986122297852055
 ```
-and a faster version of Gregories where (x+1)/(x-1) = 1/(1+sqrt3) -> x = 2/(4 + 2sqrt(3))
+and a faster version of Gregory's where (x+1)/(x-1) = 1/(1+sqrt3) -> x = 2/(4 + 2sqrt(3))
 ```
 
 log3_fast = 0
@@ -179,8 +271,35 @@ def myheron(a, n):
     return x
 
 print(myheron(16, 7)) # 4.0
+print(myheron(1500, 15)) # 38.72983346207417
+
+
 ```
-Then Goldschmidts, but it's important to assume a < 5 or else the formula's used to compute the sequence keep b_n+1 = b_n, or render it unintelligible 
+Here are the iterations leading to the second print out:
+```
+750.5
+376.2493337774817
+190.11802590009145
+99.0039308317101
+57.077422205291754
+41.6787579201503
+38.834157053915604
+38.72997358886769
+38.72983346232766
+38.72983346207417
+```
+We can see the error term grow smaller and smaller when we add a print(x-math.sqrt(1500))/math.sqrt(1500))
+to the end of the previous function. No matter what x is it continues to hone in on the square root value.
+```
+18.377826675524446
+8.714716024945483
+3.9088263208325635
+1.556270502135228
+0.4737327043036292
+0.0761409021023505
+0.0026936235587894605
+```
+Then Goldschmidts, but it's important to assume a < 5 or else the formula's used to compute the sequence keep b_n+1 = b_n, or render it unintelligible.
 ```
 def mygoldschmidts(a, n):
     b = a
@@ -193,9 +312,17 @@ def mygoldschmidts(a, n):
     return y
 
 print(mygoldschmidts(2, 18)) # 1.4142135623730951
+print(mygoldschmidts(7, 18)) # OverflorError: (34, 'Result too large')
 
 ```
-
+The second it's off by a bit it takes off and diverges very quickly. 
+And here are the first four iterations for the second printout:
+```
+9.0
+47.25
+8719.83984375
+55251513136.57361
+```
 #2
 
 First we are going to try the fixed point method x = arcsin(e^-x).
@@ -221,7 +348,7 @@ def myphi_quadratic(x,n):
         y0 = x - (math.sin(x) - (math.e ** -x)) / (math.cos(x) + (math.e ** -x))
         x = y0
     return x
+
 print(myphi_quadratic(1, 15)) #0.5885327439818611
 
 ```
-
